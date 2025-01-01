@@ -125,7 +125,7 @@ def generate_number():
                     if len(available_numbers) < count:
                         session['error_message'] = "Not enough unique numbers available."
                     else:
-                        numbers = random.sample(list(available_numbers), count)
+                        numbers = sorted(random.sample(list(available_numbers), count))
                         generated_numbers.update(numbers)
                         session['numbers'] = numbers  # Store numbers in session
                         session['error_message'] = None
