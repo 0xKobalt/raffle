@@ -20,6 +20,16 @@ HTML_TEMPLATE = """
 <head>
     <title>CSA-EUR Give Fortune Get Fortune Raffle</title>
     <style>
+        body {
+            background-color: darkred;
+            color: #FFCC66;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #FFCC66;
+        }
         table {
             border-collapse: collapse;
             width: 100%;
@@ -27,15 +37,16 @@ HTML_TEMPLATE = """
             margin: auto;
         }
         td {
-            border: 1px solid black;
+            border: 1px solid #FFCC66;
             text-align: center;
             width: 25px;
             height: 25px;
-            background-color: white;
+            background-color: darkred;
+            color: #FFCC66;
         }
         td.highlight {
-            background-color: teal;
-            color: white;
+            background-color: #FFCC66;
+            color: darkred;
         }
         form {
             text-align: center;
@@ -48,7 +59,7 @@ HTML_TEMPLATE = """
             font-size: 1.2em;
         }
         .error {
-            color: red;
+            color: #FF6666;
             text-align: center;
         }
         .history {
@@ -57,6 +68,29 @@ HTML_TEMPLATE = """
         }
         .history p {
             font-size: 1em;
+        }
+        button {
+            background-color: #FFCC66;
+            color: darkred;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #FFA500;
+        }
+        input {
+            border: 1px solid #FFCC66;
+            padding: 5px;
+            background-color: darkred;
+            color: #FFCC66;
+        }
+        input::placeholder {
+            color: #FFCC66;
+        }
+        input[type="number"] {
+            width: 60px;
         }
     </style>
 </head>
@@ -85,6 +119,13 @@ HTML_TEMPLATE = """
         {% endif %}
     </div>
 
+    <div class="history">
+        <h3>History of Drawn Numbers:</h3>
+        {% for entry in history %}
+        <p>{{ entry.custom_text }}: {{ entry.numbers | join(', ') }}</p>
+        {% endfor %}
+    </div>
+
     <table>
         {% for i in range(1, 3001, 40) %}
         <tr>
@@ -96,17 +137,10 @@ HTML_TEMPLATE = """
         </tr>
         {% endfor %}
     </table>
-
-    <div class="history">
-        <h3>History of Drawn Numbers:</h3>
-        {% for entry in history %}
-        <p>{{ entry.custom_text }}: {{ entry.numbers | join(', ') }}</p>
-        {% endfor %}
-    </div>
-
 </body>
 </html>
 """
+
 
 @app.route('/', methods=['GET', 'POST'])
 def generate_number():
