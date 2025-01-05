@@ -2,12 +2,10 @@ from flask import Flask, render_template_string, request, redirect, url_for, ses
 import random
 
 app = Flask(__name__)
-
-app.secret_key = 'your_secret_key'  # Necessary for using sessions
+app.secret_key = 'your_secret_key'
 
 # Store previous numbers, custom text, and history
-generated_numbers = set()  # Store all drawn numbers from previous sessions
-custom_text = ""
+generated_numbers = set()
 history = []
 
 # Max count for number generation
@@ -99,21 +97,25 @@ HTML_TEMPLATE = """
 
     <form method="post">
         <label for="custom_text">Prize:</label>
-        <input type="text" id="custom_text" name="custom_text" placeholder="Enter prize" required>
+        <input type="text" id="custom_text" name="custom_text" placeholder="Enter prize" >
         <br><br>
         <label for="count">Enter the number of unique random numbers:</label>
-        <input type="number" id="count" name="count" min="1" max="{{ max_count }}" required>
+        <input type="number" id="count" name="count" min="1" max="{{ max_count }}" >
         <br><br>
         <button type="submit">Generate Numbers</button>
-    </form>
-
-    <form method="post" action="/reset">
-        <button type="submit">Reset Drawn Numbers</button>
+        <br>
+        <br>
+        <button type="submit" formaction="/generate-single">Generate Single Number</button>
     </form>
 
     <div class="last-drawn">
         {% if error_message %}
             <p class="error">{{ error_message }}</p>
+        {% elif single_number %}
+            <p>{{ single_custom_text }}: {{ single_number }}</p>
+            <form method="post" action="/confirm">
+                <button type="submit">Confirm Number</button>
+            </form>
         {% elif numbers %}
             <p>{{ custom_text }}: {{ numbers | join(', ') }}</p>
         {% endif %}
@@ -121,10 +123,14 @@ HTML_TEMPLATE = """
 
     <div class="history">
         <h3>History of Drawn Numbers:</h3>
-        {% for entry in history %}
+        {% for entry in history[::-1] %}
         <p>{{ entry.custom_text }}: {{ entry.numbers | join(', ') }}</p>
         {% endfor %}
     </div>
+
+    <form method="post" action="/reset">
+        <button type="submit">Reset Drawn Numbers</button>
+    </form>
 
     <table>
         {% for i in range(1, 3001, 40) %}
@@ -141,63 +147,91 @@ HTML_TEMPLATE = """
 </html>
 """
 
-
 @app.route('/', methods=['GET', 'POST'])
 def generate_number():
-    global generated_numbers, custom_text, history
+    global generated_numbers, history
 
-    numbers = None  # Initialize to None
+    print(session)
 
-    if request.method == 'POST':
-        if 'count' in request.form:
-            try:
-                count = int(request.form.get('count', 1))
-                if count > MAX_COUNT:
+    numbers = None
+    single_number = session.get('single_number', None)
+    single_custom_text = session.get('single_custom_text', "")
+    error_message = session.pop('error_message', None)
+    custom_text = session.get('custom_text', "")
+
+    if request.method == 'POST' and 'count' in request.form:
+        try:
+            count = int(request.form.get('count', 1))
+            if count > MAX_COUNT:
+                session['error_message'] = "Not enough unique numbers available."
+            else:
+                available_numbers = set(range(1, MAX_COUNT + 1)) - generated_numbers
+                if len(available_numbers) < count:
                     session['error_message'] = "Not enough unique numbers available."
                 else:
-                    available_numbers = set(range(1, MAX_COUNT + 1)) - generated_numbers
-                    if len(available_numbers) < count:
-                        session['error_message'] = "Not enough unique numbers available."
-                    else:
-                        numbers = sorted(random.sample(list(available_numbers), count))
-                        generated_numbers.update(numbers)
-                        session['numbers'] = numbers  # Store numbers in session
-                        session['error_message'] = None
-            except ValueError:
-                session['error_message'] = "Invalid input. Please enter a valid number."
+                    numbers = sorted(random.sample(list(available_numbers), count))
+                    generated_numbers.update(numbers)
+                    session['numbers'] = numbers
+                    session['error_message'] = None
+        except ValueError:
+            session['error_message'] = "Invalid input. Please enter a valid number."
 
         if 'custom_text' in request.form:
             custom_text = request.form.get('custom_text')
-            session['custom_text'] = custom_text  # Store custom text in session
+            session['custom_text'] = custom_text
             if numbers:
                 history.append({'custom_text': custom_text, 'numbers': numbers})
                 session['history'] = history
 
         return redirect(url_for('generate_number'))
 
-    # For GET requests, retrieve numbers and error message from session
-    numbers = session.get('numbers')
-    error_message = session.pop('error_message', None)  # Pop to clear after display
-    custom_text = session.get('custom_text', "")
-
     return render_template_string(
         HTML_TEMPLATE,
-        numbers=numbers,
+        numbers=session.get('numbers'),
         previous_numbers=generated_numbers,
         custom_text=custom_text,
+        single_custom_text=single_custom_text,
+        single_number=single_number,
         history=history,
         max_count=MAX_COUNT,
         error_message=error_message
     )
 
+@app.route('/generate-single', methods=['POST'])
+def generate_single_number():
+    global generated_numbers
+    session.pop('numbers', None)
+    available_numbers = set(range(1, MAX_COUNT + 1)) - generated_numbers
+    single_custom_text = request.form.get('custom_text')
+    if single_custom_text != None:
+        single_custom_text = session.get('single_custom_text', "Single Number")
+    print(session)
+    if available_numbers:
+        single_number = random.choice(list(available_numbers))
+        session['single_number'] = single_number
+        session['single_custom_text'] = single_custom_text
+    else:
+        session['error_message'] = "No numbers available to generate."
+    return redirect(url_for('generate_number'))
+
+@app.route('/confirm', methods=['POST'])
+def confirm_single_number():
+    global generated_numbers, history
+    single_number = session.pop('single_number', None)
+    single_custom_text = session.pop('single_custom_text', "Single Number")
+    if single_number:
+        generated_numbers.add(single_number)
+        history.append({'custom_text': single_custom_text, 'numbers': [single_number]})
+        session['history'] = history
+    return redirect(url_for('generate_number'))
+
 @app.route('/reset', methods=['POST'])
 def reset_numbers():
-    global generated_numbers, custom_text, history
-    generated_numbers = set()  # Reset the generated numbers set
-    custom_text = ""  # Reset custom text
-    history = []  # Clear history
-    session.clear()  # Clear session data
-    return redirect(url_for('generate_number'))  # Redirect back to the main page with the reset state
+    global generated_numbers, history
+    generated_numbers = set()
+    history = []
+    session.clear()
+    return redirect(url_for('generate_number'))
 
 if __name__ == '__main__':
     app.run(debug=True)
