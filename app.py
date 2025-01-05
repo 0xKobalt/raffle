@@ -203,9 +203,9 @@ def generate_single_number():
     session.pop('numbers', None)
     available_numbers = set(range(1, MAX_COUNT + 1)) - generated_numbers
     single_custom_text = request.form.get('custom_text')
-    if single_custom_text != None:
-        single_custom_text = session.get('single_custom_text', "Single Number")
-    print(session)
+    print(single_custom_text)
+    if single_custom_text == '':
+        single_custom_text = session.get('single_custom_text', "")
     if available_numbers:
         single_number = random.choice(list(available_numbers))
         session['single_number'] = single_number
