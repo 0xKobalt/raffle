@@ -90,6 +90,11 @@ HTML_TEMPLATE = """
         input[type="number"] {
             width: 60px;
         }
+        hr {
+            height:10px;
+            border-width:0;
+            background-color:#FFCC66;
+        }
     </style>
 </head>
 <body>
@@ -105,10 +110,11 @@ HTML_TEMPLATE = """
         <button type="submit">Generate Numbers</button>
         <br>
         <br>
-        <button type="submit" formaction="/generate-single">Generate Single Number</button>
+        <button type="submit" formaction="/generate-single">Generate Dinner Exclusive Prize</button>
     </form>
-
+ <hr> 
     <div class="last-drawn">
+        <h3>Winners of Current Draw:</h3>
         {% if error_message %}
             <p class="error">{{ error_message }}</p>
         {% elif single_number %}
@@ -120,7 +126,7 @@ HTML_TEMPLATE = """
             <p>{{ custom_text }}: {{ numbers | join(', ') }}</p>
         {% endif %}
     </div>
-
+ <hr> 
     <div class="history">
         <h3>History of Drawn Numbers:</h3>
         {% for entry in history[::-1] %}
