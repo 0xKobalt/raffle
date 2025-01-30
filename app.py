@@ -55,6 +55,7 @@ HTML_TEMPLATE = """
             text-align: center;
             margin-top: 20px;
             font-size: 1.2em;
+            border: 20px solid #FFCC66;
         }
         .error {
             color: #FF6666;
@@ -112,7 +113,6 @@ HTML_TEMPLATE = """
         <br>
         <button type="submit" formaction="/generate-single">Generate Dinner Exclusive Prize</button>
     </form>
- <hr> 
     <div class="last-drawn">
         <h3>Winners of Current Draw:</h3>
         {% if error_message %}
@@ -126,7 +126,6 @@ HTML_TEMPLATE = """
             <p>{{ custom_text }}: {{ numbers | join(', ') }}</p>
         {% endif %}
     </div>
- <hr> 
     <div class="history">
         <h3>History of Drawn Numbers:</h3>
         {% for entry in history[::-1] %}
