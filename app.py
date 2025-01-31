@@ -55,7 +55,10 @@ HTML_TEMPLATE = """
             text-align: center;
             margin-top: 20px;
             font-size: 1.2em;
-            border: 20px solid #FFCC66;
+            border: 15px solid #FFCC66;
+        }
+        .last-drawn p {
+            font-size: 2em;
         }
         .error {
             color: #FF6666;
