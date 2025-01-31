@@ -52,6 +52,10 @@ HTML_TEMPLATE = """
             margin-bottom: 20px;
         }
         .last-drawn {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 70%;
             text-align: center;
             margin-top: 20px;
             font-size: 1.2em;
