@@ -224,7 +224,7 @@ def generate_single_number():
     session.pop('numbers', None)
 
     # Define the valid ranges for single-number generation
-    valid_range = set(range(1, 157)) | set(range(1963, 1965))
+    valid_range = set(range(1, 157)) | set(range(1963, 1965)) - {153, 154}
 
     # Remove already generated numbers
     available_numbers = valid_range - generated_numbers
