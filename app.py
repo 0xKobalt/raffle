@@ -145,11 +145,9 @@ HTML_TEMPLATE = """
         {% endfor %}
     </div>
 
-    <!--
     <form method="post" action="/reset">
         <button type="submit">Reset Drawn Numbers</button>
     </form>
-    -->
     
     <table>
         {% for i in range(1, 1695, 40) %}
@@ -256,13 +254,13 @@ def confirm_single_number():
         save_results_to_file()
     return redirect(url_for('generate_number'))
 
-# @app.route('/reset', methods=['POST'])
-# def reset_numbers():
-#     global generated_numbers, history
-#     generated_numbers = set()
-#     history = []
-#     session.clear()
-#     return redirect(url_for('generate_number'))
+@app.route('/reset', methods=['POST'])
+def reset_numbers():
+    global generated_numbers, history
+    generated_numbers = set()
+    history = []
+    session.clear()
+    return redirect(url_for('generate_number'))
 
 def save_results_to_file():
     with open("raffle_results.txt", "w") as file:
