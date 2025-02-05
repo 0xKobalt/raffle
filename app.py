@@ -4,9 +4,16 @@ import random
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+excluded_numbers = {
+    22, 49, 68, 157, 396, 433, 508, 532, 538, 545, 593, 616, 640, 652, 673, 709,
+    713, 790, 818, 822, 823, 878, 879, 904, 926, 937, 996, 1000, 1042, 1052,
+    1126, 1146, 1159, 1228, 1291, 1316, 1336, 1363, 1371, 1381, 1404, 1412,
+    1513, 1535, 1560, 1609, 1626, 1663, 1664, 1672, 1678
+}
+
 # Store previous numbers, custom text, and history
-generated_numbers = set()
-history = []
+generated_numbers = set(excluded_numbers)
+history = [{'custom_text': 'Previous winners', 'numbers': sorted(excluded_numbers)}]
 
 # Max count for number generation
 MAX_COUNT = 1694
@@ -148,7 +155,7 @@ HTML_TEMPLATE = """
     <form method="post" action="/reset">
         <button type="submit">Reset Drawn Numbers</button>
     </form>
-    
+
     <table>
         {% for i in range(1, 1695, 40) %}
         <tr>
