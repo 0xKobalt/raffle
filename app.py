@@ -9,7 +9,7 @@ generated_numbers = set()
 history = []
 
 # Max count for number generation
-MAX_COUNT = 3000
+MAX_COUNT = 1694
 
 # HTML Template
 HTML_TEMPLATE = """
@@ -50,6 +50,7 @@ HTML_TEMPLATE = """
             text-align: center;
             margin-top: 20px;
             margin-bottom: 20px;
+            font-size: 1.3em;
         }
         .last-drawn {
             display: block;
@@ -61,6 +62,9 @@ HTML_TEMPLATE = """
             font-size: 1.2em;
             border: 15px solid #FFCC66;
         }
+        .last-drawn h3 {
+            font-size: 1.3em;
+        }
         .last-drawn p {
             font-size: 2em;
         }
@@ -69,6 +73,7 @@ HTML_TEMPLATE = """
             text-align: center;
         }
         .history {
+            font-size: 1.3em;
             text-align: center;
             margin-top: 20px;
         }
@@ -145,12 +150,15 @@ HTML_TEMPLATE = """
     </form>
 
     <table>
-        {% for i in range(1, 3001, 40) %}
+        {% for i in range(1, 1695, 40) %}
         <tr>
             {% for j in range(40) %}
-            <td class="{% if (i + j) in previous_numbers %}highlight{% endif %}">
-                {{ i + j }}
+            {% set num = i + j %}
+            {% if num <= 1694 %}
+            <td class="{% if num in previous_numbers %}highlight{% endif %}">
+                {{ num }}
             </td>
+            {% endif %}
             {% endfor %}
         </tr>
         {% endfor %}
@@ -194,6 +202,7 @@ def generate_number():
             if numbers:
                 history.append({'custom_text': custom_text, 'numbers': numbers})
                 session['history'] = history
+                save_results_to_file()
 
         return redirect(url_for('generate_number'))
 
@@ -213,17 +222,24 @@ def generate_number():
 def generate_single_number():
     global generated_numbers
     session.pop('numbers', None)
-    available_numbers = set(range(1, MAX_COUNT + 1)) - generated_numbers
+
+    # Define the valid ranges for single-number generation
+    valid_range = set(range(1, 157)) | set(range(1963, 1965))
+
+    # Remove already generated numbers
+    available_numbers = valid_range - generated_numbers
+
     single_custom_text = request.form.get('custom_text')
-    print(single_custom_text)
     if single_custom_text == '':
         single_custom_text = session.get('single_custom_text', "")
+
     if available_numbers:
         single_number = random.choice(list(available_numbers))
         session['single_number'] = single_number
         session['single_custom_text'] = single_custom_text
     else:
         session['error_message'] = "No numbers available to generate."
+
     return redirect(url_for('generate_number'))
 
 @app.route('/confirm', methods=['POST'])
@@ -235,6 +251,7 @@ def confirm_single_number():
         generated_numbers.add(single_number)
         history.append({'custom_text': single_custom_text, 'numbers': [single_number]})
         session['history'] = history
+        save_results_to_file()
     return redirect(url_for('generate_number'))
 
 @app.route('/reset', methods=['POST'])
@@ -244,6 +261,11 @@ def reset_numbers():
     history = []
     session.clear()
     return redirect(url_for('generate_number'))
+
+def save_results_to_file():
+    with open("raffle_results.txt", "w") as file:
+        for entry in history:
+            file.write(f"{entry['custom_text']}: {', '.join(map(str, entry['numbers']))}\n")
 
 if __name__ == '__main__':
     app.run(debug=True)
